@@ -3,8 +3,8 @@ let ctx = canvas.getContext("2d");
 let width = canvas.width = window.innerWidth;
 let height = canvas.height = window.innerHeight;
 
-let size = 20;
-
+let size = 50;
+let chunkSize = 64;
 let activateStroke = true;
 let isScrolling = true;
 
@@ -36,8 +36,8 @@ function mesh(x, y, mapX, mapY) {
     };
     return map;
 }
-let map = mesh(0, 0, 50, 50);
 
+let map = mesh(width/2, height-chunkSize*size/2, 50, 50);
 
 let perlin = new Perlin();
 perlin.seed();
@@ -69,7 +69,7 @@ function update(num, op, map, gridSize, resolution, groundLayers) {
         let row = [];
         let xoff = flying2;
         for (let x = 0; x < gridSize; x += gridSize / resolution) {
-            let v = parseInt((perlin.get(xoff, yoff) / 2 + groundLayers) * 255);//default 255     
+            let v = parseInt((perlin.get(xoff, yoff) + groundLayers) * 355);//default 255     
             row.push(v);
             xoff += gridSize / resolution
         };
@@ -90,13 +90,9 @@ function update(num, op, map, gridSize, resolution, groundLayers) {
     }
 }
 
-
-
 function renderMap(map) {
     for (let i = 0; i < map.length; i++) {
-
         for (let j = 0; j < map[i].length; j++) {
-
             if (map[i + 1] && map[j + 1]) {
                 ctx.beginPath()
                 ctx.moveTo(map[i][j][0], map[i][j][1])
@@ -110,7 +106,6 @@ function renderMap(map) {
                 if (activateStroke === true) {
                     ctx.stroke()
                 }
-                //може и тук, но е по-бавно
             }
             //   0,0,0 - 0,0,1 || 0,1,0 - 0,1,1 || 1,1,0 - 1,1,1 || 1,0,0 - 1,0,1 || 0,0,0 - 0,0,1 || 1,1,0 - 1,1,1
         }
@@ -171,27 +166,27 @@ function onmousewheel(event) {
     e.preventDefault();
 }
 
-update("flying", "-", map, 8, 64, 0.5)//just to visualise
+update("flying", "-", map, 12, chunkSize, 0.8)//just to visualise
 
 
 let chunkData = []
-let count =1;
+
 
 window.addEventListener("keypress", function (e) {
-        switch (e.code) {
-            case "KeyW":
-                update("flying", "-", map, 8, 64, 0.5)//nagore
-                    ; break;
-            case "KeyS":
-                update("flying", "+", map, 8, 64, 0.5)//nadolu
-                    ; break;
-            case "KeyA":
-                update("flying2", "-", map, 8, 64, 0.5)//nalqvo
-                    ; break;
-            case "KeyD":
-                update("flying2", "+", map, 8, 64, 0.5)//nadqsno                              
-                    ; break;
-        }
+    switch (e.code) {
+        case "KeyW":
+            update("flying", "-", map, 12, chunkSize, 0.8)//up
+                ; break;
+        case "KeyS":
+            update("flying", "+", map, 12, chunkSize, 0.8)//down
+                ; break;
+        case "KeyA":
+            update("flying2", "-", map, 12, chunkSize, 0.8)//left
+                ; break;
+        case "KeyD":
+            update("flying2", "+", map, 12, chunkSize, 0.8)//right                              
+                ; break;
+    }
 })
 
 function render() {
@@ -200,12 +195,12 @@ function render() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     view.apply();
-    if(chunkData.length!==0){
+    if (chunkData.length !== 0) {
         for (let i = 0; i < chunkData.length; i++) {
             renderMap(chunkData[i])
         }
     }
-     renderMap(map)
+    renderMap(map)
 };
 
 render();
