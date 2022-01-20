@@ -9,7 +9,6 @@ let chunkSize = 20;
 let activateStroke = true;
 let isScrolling = true;
 
-
 function mesh(x, y, mapX, mapY, size) {
     let map = [];
     let oriX = x
@@ -31,14 +30,7 @@ function mesh(x, y, mapX, mapY, size) {
     return map;
 }
 
-
-
-
 //============================================================================================================
-
-
-
-
 
 let map3 = mesh(0, 0, chunkSize, chunkSize, size);
 
@@ -73,7 +65,7 @@ function update(num, op, map, gridSize, resolution, groundLayers) {
         let row = [];
         let xoff = flying2;
         for (let x = 0; x < gridSize; x += gridSize / resolution) {
-            let v = parseInt((perlin.get(xoff, yoff) / 2 + groundLayers) * 255);//default 255     
+            let v = parseInt((perlin.get(xoff, yoff)/* / 2 */ + groundLayers) * 255);//default 255     
             row.push(v);
             xoff += gridSize / resolution
         };
@@ -81,44 +73,15 @@ function update(num, op, map, gridSize, resolution, groundLayers) {
         yoff += gridSize / resolution
     };
 
-    for (let i = 0; i < thisMap.length; i++) {
-        for (let j = 0; j < thisMap[i].length; j++) {
-            map[i][j][1] = thisMap[i][j]
-        }
-    }
+
 
     for (let i = 0; i < map.length; i++) {
         for (let j = 0; j < map[i].length; j++) {
-            map[i][j][1] += map2[i][j]
+            map[i][j][1] = thisMap[i][j] + map2[i][j]
         }
     }
     return [flying2, flying]
 }
-
-
-
-
-
-
-
-//for (let i = 0; i < chunkSize - 1; i++) {
-//    update("flying", "-", map3, 8, 64, 0.5)//nagore
-//}
-
-
-//  for (let i = 0; i < size-1; i++) {
-//update("flying", "+", map3, 8, 64, 0.5)//nadolu
-//  }
-
-
-//  for (let i = 0; i < size-1; i++) {
-//update("flying2", "-", map3, 8, 64, 0.5)//nalqvo
-//  }
-
-
-// for (let i = 0; i < size - 1; i++) {
-//     update("flying2", "+", map3, 8, 64, 0.5)//nadqsno               
-// }
 
 function updateHeights(thisMap, map, oldCoord) {
     for (let i = 0; i < thisMap.length; i++) {
@@ -129,16 +92,6 @@ function updateHeights(thisMap, map, oldCoord) {
 }
 
 //============================================================================================================
-
-
-
-
-
-
-
-
-
-
 
 function updateStroke() {
     activateStroke = false;
@@ -159,21 +112,19 @@ Map.prototype.createChunk = function (x, y, code, rows, cols, size) {
 }
 Map.prototype.loadChunk = function (code, color) {
     let map = this.mapData[code];
-    for (let i = 0; i < map.length; i++) {
-        for (let j = 0; j < map[i].length; j++) {
-            if (map[i + 1] && map[j + 1]) {
-                ctx.beginPath()
-                ctx.moveTo(map[i][j][0], map[i][j][1])
-                ctx.lineTo(map[i][j + 1][0], map[i][j + 1][1])
-                ctx.lineTo(map[i + 1][j + 1][0], map[i + 1][j + 1][1])
-                ctx.lineTo(map[i + 1][j][0], map[i + 1][j][1])
-                ctx.lineTo(map[i][j][0], map[i][j][1])
-                ctx.lineTo(map[i + 1][j + 1][0], map[i + 1][j + 1][1])
-                ctx.fillStyle = color
-                ctx.fill()
-                if (activateStroke === true) {
-                    ctx.stroke()
-                }
+    for (let i = 0; i < map.length - 1; i++) {
+        for (let j = 0; j < map[i].length - 1; j++) {
+            ctx.beginPath()
+            ctx.moveTo(map[i][j][0], map[i][j][1])
+            ctx.lineTo(map[i][j + 1][0], map[i][j + 1][1])
+            ctx.lineTo(map[i + 1][j + 1][0], map[i + 1][j + 1][1])
+            ctx.lineTo(map[i + 1][j][0], map[i + 1][j][1])
+            ctx.lineTo(map[i][j][0], map[i][j][1])
+            ctx.lineTo(map[i + 1][j + 1][0], map[i + 1][j + 1][1])
+            ctx.fillStyle = color
+            ctx.fill()
+            if (activateStroke === true) {
+                ctx.stroke()
             }
         }
     }
@@ -214,26 +165,21 @@ function neighboursOfCenterChunkCoords(code) {
 function createSingleStepFromSpin(op, dir) {
     let up
     for (let i = 0; i < chunkSize - 1; i++) {
-        //ако искаш да използваш опцията resolution, трябва да намериш начин да не правиш гигантична матрица
-        //обаче - след имплементация на LOD, образуването на шума драстично ще се промени
         up = update(op, dir, map3, 3, chunkSize, 0.5)//default 8,64,0.5
     }
     return up
 }
 
 function objectContains(chunk) {
-
     if (!map.mapData.hasOwnProperty(`${chunk[0]} ${chunk[1]}`)) {
         map.createChunk(chunk[0], chunk[1], `${chunk[0]} ${chunk[1]}`, chunkSize, chunkSize, size)
         updateHeights(map.mapData[`${chunk[0]} ${chunk[1]}`], map3, chunk[1])
     }
-    // else {
-    //     map.loadChunk(`${chunk[0]} ${chunk[1]}`, "green")
-    // }
 }
-globalOffset["main"].offset = createSingleStepFromSpin("flying2", "+");
-function createNeighboursChunk(code) {
 
+globalOffset["main"].offset = createSingleStepFromSpin("flying2", "+");
+
+function createNeighboursChunk(code) {
     let neighbours = neighboursOfCenterChunkCoords(code);
 
     globalOffset["botLeftOfMain"].coords = neighbours.botLeftOfMain
@@ -246,8 +192,7 @@ function createNeighboursChunk(code) {
     globalOffset["topRightOfMain"].coords = neighbours.topRightOfMain
     globalOffset["botRightOfMain"].coords = neighbours.botRightOfMain
 
-
-   // globalOffset["main"].offset = createSingleStepFromSpin("flying2", "+");
+    // globalOffset["main"].offset = createSingleStepFromSpin("flying2", "+");
     objectContains(globalOffset["main"].coords);
 
     globalOffset["rightOfMain"].offset = createSingleStepFromSpin("flying2", "+");
@@ -276,9 +221,8 @@ function createNeighboursChunk(code) {
 
 
 }
+
 createNeighboursChunk(currentMiddle)
-
-
 
 canvas.addEventListener("mousewheel", onmousewheel, false);
 
@@ -368,20 +312,17 @@ window.addEventListener("keypress", function (e) {
     }
 })
 
-
 function render() {
     requestAnimationFrame(render);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     view.apply();
 
-
     Object.keys(globalOffset).forEach(code => {
         let realCode = globalOffset[code].coords.join(" ");
         if (map.mapData.hasOwnProperty(realCode)) {
             map.loadChunk(realCode, "green")
         }
-
     })
 };
 
